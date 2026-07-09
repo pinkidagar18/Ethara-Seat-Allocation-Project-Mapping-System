@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-bg text-ink font-body antialiased;
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Ambient glow field — a restrained, CSS-only stand-in for an animated
+   particle background. Same "alive AI-startup" feeling as drifting
+   particles, without a canvas engine competing for paint time against
+   5,000-row tables. Slow, subtle, and respects reduced-motion. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -10%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(620px circle at 15% 20%, rgba(102, 126, 234, 0.24), transparent 60%),
+    radial-gradient(560px circle at 85% 15%, rgba(118, 75, 162, 0.22), transparent 55%),
+    radial-gradient(680px circle at 30% 90%, rgba(240, 147, 251, 0.14), transparent 60%),
+    radial-gradient(520px circle at 90% 80%, rgba(102, 126, 234, 0.16), transparent 55%);
+  animation: drift 26s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(-2%, 2%, 0) scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+}
+
+::selection {
+  background-color: #667eea55;
+}
+
+
+select {
+  color: #ffffff;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+select option:checked,
+select option:hover {
+  background-color: #bfdbfe;
+  color: #0f172a;
+}
+/* visible keyboard focus everywhere */
+:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Glass card recipe: translucent fill + blur + a hairline border that
+   picks up a faint hint of the brand gradient, so panels feel like part
+   of the same system as the glowing buttons rather than generic frosting. */
+.card {
+  @apply rounded-card;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(102, 126, 234, 0.16);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Signature gradient — buttons, CTAs, logo mark, active states */
+.brand-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glow-hover {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+.glow-hover:hover {
+  box-shadow: 0 0 28px rgba(102, 126, 234, 0.45), 0 0 12px rgba(240, 147, 251, 0.25);
+}
+.glow-hover:active {
+  transform: scale(0.98);
+}
+
+.eyebrow {
+  @apply text-[11px] font-mono uppercase tracking-widest text-ink-muted;
+}
+
+/* Faint dot grid — echoes the seat-grid subject matter without being loud */
+.grid-paper {
+  background-image: radial-gradient(circle, rgba(102, 126, 234, 0.14) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
