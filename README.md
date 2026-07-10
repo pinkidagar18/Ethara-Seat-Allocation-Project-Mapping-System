@@ -1,223 +1,470 @@
 # Ethara Seat Allocation & Project Mapping System
 
-A full-stack internal tool for managing seat allocation and project mapping for a ~5,000-employee organization. Built for the Ethara technical assessment.
+A full-stack internal workforce operations platform for managing employee seating, project assignments, new joiner allocation, search, analytics, and AI-assisted natural-language queries for a 5,000-employee organization.
 
-> **Note on the spec:** the detailed assessment document (business rules, exact API contracts, submission guidelines) referenced in the assignment brief was not available during development. This build was implemented directly from the requirement list in the assignment prompt. Every place a business rule had to be *assumed* rather than specified is called out explicitly in [Business Rules & Assumptions](#business-rules--assumptions) below — check these against the real spec before treating this as final.
+Built with **Next.js**, **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **Tailwind CSS**, and **Recharts**.
+
+## Live Demo
+
+| Service | URL |
+|---|---|
+| Frontend | https://ethara-seat-allocation-project-mapp-xi.vercel.app/ |
+| Backend API | https://ethara-seat-allocation-project-mapping-w0km.onrender.com |
+| Swagger Docs | https://ethara-seat-allocation-project-mapping-w0km.onrender.com/docs |
+| Health Check | https://ethara-seat-allocation-project-mapping-w0km.onrender.com/health |
+
+## Demo Video
+
+[Watch the demo video](./Images/Demo_Vedio.mp4)
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Local Setup](#local-setup)
+- [Environment Variables](#environment-variables)
+- [API Endpoints](#api-endpoints)
+- [Business Rules](#business-rules)
+- [AI Assistant Design](#ai-assistant-design)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [Known Limitations](#known-limitations)
+- [License](#license)
+
+## Overview
+
+Ethara Seat Allocation & Project Mapping System is an internal admin tool designed for HR, facilities, and project operations teams. It solves the everyday problem of tracking where employees sit, which projects they are assigned to, whether seats are available, and how new joiners can be allocated quickly without double-booking resources.
+
+The system includes a seeded production-style dataset with approximately:
+
+| Entity | Volume |
+|---|---:|
+| Employees | 5,000 |
+| Projects | 150 |
+| Seats | 5,240 |
+| Floors | 5 |
+| Project Assignments | 6,000+ |
+| Pending New Joiners | 40 |
+
+## Features
+
+### Employee Management
+
+- Create, view, update, and offboard employees.
+- Track departments, designations, reporting managers, joining dates, and employment status.
+- Soft-delete/offboard flow releases active seat allocations and ends project assignments.
+
+### Seat Allocation
+
+- Allocate and release seats with double-booking prevention.
+- Enforce one active seat per employee.
+- Track full seat allocation history.
+- Filter seats by floor, zone, type, active status, and occupancy.
+
+### Project Mapping
+
+- Create and manage projects.
+- Assign employees to project teams with role and allocation percentage.
+- Prevent employees from exceeding 100% allocation across active projects.
+- View project team rosters and project headcount.
+
+### New Joiner Allocation
+
+- Create new joiner requests.
+- Auto-allocate seats using priority order:
+  1. Preferred floor and zone
+  2. Preferred floor
+  3. Any available seat
+  4. Pending queue if no seat is available
+- Retry pending allocation later.
+
+### Dashboard & Analytics
+
+- Total employees and active employees.
+- Seat utilization and availability.
+- Active projects and pending joiner count.
+- Utilization by floor.
+- Headcount by department and project.
+
+### Search
+
+- Global search across employees, seats, and projects.
+- Entity-level filters for faster operations.
+
+### AI Assistant
+
+- Ask natural-language questions like:
+  - How many seats are available on Floor 3?
+  - Who sits at seat F2-C-012?
+  - What is the headcount in Engineering?
+  - Which seat is assigned to ETH1001?
+- Uses a rule-based intent parser first.
+- Optional Groq fallback for supported intent classification.
+
+## Screenshots
+
+### Dashboard
+
+![Dashboard](./Images/Dashboard.png)
+
+### Employees
+
+![Employees](./Images/Employees.png)
+
+### Projects
+
+![Projects](./Images/Projects.png)
+
+### Seat Map
+
+![Seat Map](./Images/Seat_Map.png)
+
+### New Joiner Allocation
+
+![New Joiner](./Images/New_Joinee.png)
+
+### Ask Ethara AI Assistant
+
+![Ask Ethara](./Images/Ask_Ethara.png)
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 14 (App Router) + TypeScript + Tailwind CSS + Recharts |
-| Backend | FastAPI (Python 3.12) |
-| Database | PostgreSQL (SQLAlchemy 2.0 ORM) |
-| AI Assistant | Rule-based NL parser + optional Claude API fallback |
-| Deployment target | Railway/Render (backend + Postgres), Vercel/Netlify (frontend) |
-
-## Features Implemented
-
-- **Employee Management** — CRUD, department assignment, manager hierarchy, offboarding (soft-delete that auto-releases seat + ends project assignments)
-- **Project Mapping** — projects, team assignments with role + allocation %, enforces that an employee's allocation across active projects can't exceed 100%
-- **Seat Allocation & Release** — allocate/release with double-booking prevention, one-active-seat-per-employee rule, full allocation history per employee
-- **New Joiner Seat Allocation** — creates the employee record and attempts immediate auto-allocation (floor+zone → floor → any available seat, in that priority order); falls back to a "pending" queue with a retry endpoint if nothing is free
-- **Search & Filter** — per-entity filters (employee search/department/status/project/has-seat; seat floor/zone/type/occupancy; project search/status) plus one global search-everything endpoint
-- **Dashboard & Analytics** — headcount, seat utilization (overall + per-floor), department headcount, top projects by headcount
-- **AI Assistant / NL Query** — a chat box that answers questions like *"How many available seats on Floor 3?"* or *"Who sits at seat F2-C-012?"* (see [AI Assistant design](#ai-assistant-design) below)
-- **REST API** — full CRUD + business-rule endpoints, documented via Swagger at `/docs`
-- **Seed Data Generation** — one script generates ~5,000 employees, ~150 projects, ~5,200 seats across 5 floors, and realistic allocation/assignment data in a few seconds
+| Frontend | Next.js 14 App Router, TypeScript, Tailwind CSS |
+| Charts | Recharts |
+| UI Icons | Lucide React |
+| Backend | FastAPI, Python 3.12 |
+| Database | PostgreSQL |
+| ORM | SQLAlchemy 2.0 |
+| Validation | Pydantic |
+| AI Assistant | Rule-based parser plus optional Groq Llama 3.3 70B |
+| Backend Hosting | Render |
+| Frontend Hosting | Vercel |
 
 ## Project Structure
 
-```
+```text
 ethara/
-├── backend/
-│   ├── app/
-│   │   ├── main.py              # FastAPI app, CORS, router registration
-│   │   ├── database.py          # SQLAlchemy engine/session (PostgreSQL)
-│   │   ├── models.py            # ORM models (8 tables)
-│   │   ├── schemas.py           # Pydantic request/response schemas
-│   │   ├── seed.py              # Seed data generator
-│   │   └── routers/
-│   │       ├── employees.py
-│   │       ├── projects.py
-│   │       ├── seats.py
-│   │       ├── new_joiners.py
-│   │       ├── dashboard.py
-│   │       ├── search.py
-│   │       └── assistant.py     # AI / NL query endpoint
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── .env.example
-├── frontend/
-│   ├── app/                     # Next.js App Router pages
-│   │   ├── page.tsx             # Dashboard
-│   │   ├── employees/
-│   │   ├── projects/
-│   │   ├── seats/
-│   │   ├── new-joiners/
-│   │   └── assistant/
-│   ├── components/
-│   ├── lib/api.ts               # Typed API client
-│   └── .env.local.example
-├── database_schema.sql          # PostgreSQL DDL, generated from the SQLAlchemy models
-├── AI_PROMPTS.md
-└── README.md
+|-- backend/
+|   |-- app/
+|   |   |-- main.py
+|   |   |-- database.py
+|   |   |-- models.py
+|   |   |-- schemas.py
+|   |   |-- seed.py
+|   |   `-- routers/
+|   |       |-- employees.py
+|   |       |-- projects.py
+|   |       |-- seats.py
+|   |       |-- new_joiners.py
+|   |       |-- dashboard.py
+|   |       |-- search.py
+|   |       `-- assistant.py
+|   |-- Dockerfile
+|   |-- requirements.txt
+|   `-- .env.example
+|-- frontend/
+|   |-- app/
+|   |-- components/
+|   |-- lib/
+|   |-- public/
+|   |-- package.json
+|   |-- vercel.json
+|   `-- .env.local.example
+|-- Images/
+|   |-- Dashboard.png
+|   |-- Employees.png
+|   |-- Projects.png
+|   |-- Seat_Map.png
+|   |-- New_Joinee.png
+|   |-- Ask_Ethara.png
+|   `-- Demo_Vedio.mp4
+|-- database_schema.sql
+|-- docker-compose.yml
+|-- render.yaml
+|-- start-dev.ps1
+`-- README.md
 ```
 
 ## Local Setup
 
 ### Prerequisites
-Python 3.11+, Node.js 18+, and PostgreSQL. The repository includes a Docker Compose service for local PostgreSQL.
 
-### Quick Start (Windows)
+- Python 3.11+
+- Node.js 18+
+- PostgreSQL or Docker
+- Git
+
+### Quick Start on Windows
 
 ```powershell
 .\start-dev.ps1
 ```
 
-This starts Docker/PostgreSQL, the backend on `http://127.0.0.1:8020`, and the frontend on `http://localhost:3000`.
+This starts:
 
-### Backend
+| Service | Local URL |
+|---|---|
+| Backend | http://127.0.0.1:8020 |
+| Frontend | http://localhost:3000 |
+| Swagger Docs | http://127.0.0.1:8020/docs |
+
+### Manual Backend Setup
 
 ```bash
 docker compose up -d postgres
 
 cd backend
-python3 -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# macOS/Linux
+source venv/bin/activate
+
 pip install -r requirements.txt
-
 cp .env.example .env
-# DATABASE_URL defaults to postgresql://ethara_user:ethara_pass@localhost:5432/ethara_db,
-# matching the local Postgres service in docker-compose.yml.
-
-# Generate seed data (drops and recreates all tables, then seeds ~5,000 employees)
 python -m app.seed
-# Smaller/faster dataset for quick iteration:
-# SEED_EMPLOYEE_COUNT=300 python -m app.seed
-
 uvicorn app.main:app --reload --port 8020
 ```
 
-API is now live at `http://127.0.0.1:8020`, Swagger docs at `http://127.0.0.1:8020/docs`.
-
-### Frontend
+### Manual Frontend Setup
 
 ```bash
 cd frontend
 npm install
-cp .env.local.example .env.local   # API_URL=http://127.0.0.1:8020
+cp .env.local.example .env.local
 npm run dev
 ```
 
-App is now live at `http://localhost:3000`.
-
 ## Environment Variables
 
-**Backend (`backend/.env`)**
+### Backend
+
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_URL` | Yes | Postgres connection string. The local default matches `docker-compose.yml`. |
-| `GROQ_API_KEY` | No | Enables the Groq (Llama 3.3 70B) fallback for AI Assistant queries the rule-based parser can't classify. Free tier at [console.groq.com](https://console.groq.com). Assistant works without it. |
-| `FRONTEND_ORIGINS` | No | Comma-separated CORS allowlist. Defaults to `http://localhost:3000`. |
+| `DATABASE_URL` | Yes | PostgreSQL connection string. |
+| `FRONTEND_ORIGINS` | Yes in production | Comma-separated CORS allowlist. |
+| `GROQ_API_KEY` | No | Enables optional Groq fallback for AI assistant. |
+| `GROQ_MODEL` | No | Defaults to `llama-3.3-70b-versatile`. |
+| `ENVIRONMENT` | No | `development` or `production`. |
 
-**Frontend (`frontend/.env.local`)**
+Example:
+
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/ethara_db
+FRONTEND_ORIGINS=http://localhost:3000
+GROQ_API_KEY=
+GROQ_MODEL=llama-3.3-70b-versatile
+ENVIRONMENT=development
+```
+
+### Frontend
+
 | Variable | Required | Description |
 |---|---|---|
-| `API_URL` | Yes for local dev | Backend API URL used by the Next.js `/api/*` proxy. Defaults to `http://127.0.0.1:8020` in `.env.local.example`. |
-| `NEXT_PUBLIC_API_URL` | No | Optional public backend URL for deployments that should call the API directly from the browser. Leave unset for local dev. |
+| `API_URL` | Yes | Backend URL used by the Next.js `/api/*` proxy. |
+| `NEXT_PUBLIC_API_URL` | No | Optional browser-direct API URL. Usually leave unset. |
 
-## API Documentation
+Example:
 
-Interactive Swagger UI is auto-generated by FastAPI at **`/docs`** (ReDoc at `/redoc`) on whatever host the backend is deployed to. Key endpoint groups:
+```env
+API_URL=http://127.0.0.1:8020
+```
+
+## API Endpoints
 
 | Prefix | Purpose |
 |---|---|
-| `/api/employees` | CRUD, search/filter, offboarding |
-| `/api/projects` | CRUD, team roster, assignment create/end |
-| `/api/seats` | List/filter, allocate, release, floors, per-employee history |
-| `/api/new-joiners` | Create (with auto-allocation), list, retry allocation |
-| `/api/dashboard` | Summary stats, utilization-by-floor, headcount breakdowns |
-| `/api/search` | Cross-entity search (employees + seats + projects in one call) |
-| `/api/assistant` | Natural-language query endpoint |
+| `/` | API root |
+| `/health` | Health check |
+| `/api/employees` | Employee CRUD and offboarding |
+| `/api/projects` | Project CRUD and project team management |
+| `/api/projects/assignments` | Project assignment management |
+| `/api/seats` | Seat listing, allocation, release, and history |
+| `/api/new-joiners` | New joiner request and retry allocation |
+| `/api/dashboard` | Summary and analytics endpoints |
+| `/api/search` | Global search |
+| `/api/assistant/query` | Natural-language assistant query |
 
-## Database Schema
+Open Swagger UI here:
 
-See [`database_schema.sql`](./database_schema.sql) for the full PostgreSQL DDL. Summary:
+```text
+https://ethara-seat-allocation-project-mapping-w0km.onrender.com/docs
+```
 
-- **departments** ← **employees** (department_id, self-referential `reporting_manager_id`)
-- **employees** ↔ **projects** via **project_assignments** (many-to-many, with role + allocation % + active flag)
-- **floors** → **seats** (one-to-many)
-- **employees** ↔ **seats** via **seat_allocations** (history table — every allocate/release is a row, `status` = active/released, so "who sat where and when" is fully queryable)
-- **new_joiner_requests** tracks the seat-request lifecycle for new hires (pending → allocated), separate from `seat_allocations` so the request itself has a record even before/if a seat is found
+## Business Rules
 
-## Business Rules & Assumptions
-
-No detailed spec was available, so the following were assumed and implemented — **verify these against the real requirements doc**:
-
-1. An employee holds **at most one active seat** at a time; allocating a new one requires releasing the old one first.
-2. A seat can be **actively allocated to only one employee** at a time (double-booking blocked with a 400).
-3. An employee's **allocation % across active projects can't exceed 100%** (e.g. 60% + 60% is rejected).
-4. **New joiner auto-allocation** priority: preferred floor + zone → preferred floor only → any available seat → stays "pending" if nothing's free.
-5. **Offboarding** (`DELETE /api/employees/{id}`) is a soft-delete: marks the employee `exited`, releases their seat, and ends their active project assignments — it does not delete history.
-6. Seats have a `seat_type` (regular / hot-desk / cabin) and an `is_active` flag for marking a seat under maintenance/decommissioned (excluded from availability).
+1. An employee can have only one active seat at a time.
+2. A seat can be actively allocated to only one employee.
+3. Project allocation across active projects cannot exceed 100% for one employee.
+4. New joiner auto-allocation tries preferred floor and zone first.
+5. If no seat is available, the new joiner remains pending.
+6. Offboarding is a soft-delete and preserves history.
+7. Offboarding releases the active seat and ends active project assignments.
+8. Seat allocation history is retained for auditability.
 
 ## AI Assistant Design
 
-The assistant does **not** let an LLM generate and execute raw SQL — on a system holding 5,000 employees' PII, that's an injection/data-exposure risk not worth taking. Instead:
+The assistant avoids allowing an LLM to generate raw SQL. This keeps database access controlled and reduces injection/data exposure risk.
 
-1. A regex-based rule parser handles common question shapes locally (no API cost, zero latency beyond the DB query itself): available seats by floor, floor utilization, project/department headcount, who sits where, an employee's current seat, pending new joiners, total available seats, unseated employee count.
-2. If a query doesn't match any rule **and** `GROQ_API_KEY` is set, it's sent to Groq (Llama 3.3 70B, JSON mode) with a closed list of supported intents — the model only returns *which* intent + parameters as JSON, never SQL. The backend then runs the matching, already-parameterized query. The LLM stays on the classification side of the trust boundary, never the execution side.
-3. Without an API key, unmatched queries get a helpful "try asking like this" response instead of failing silently.
+Flow:
 
-## Deployment Notes
+1. A local regex/rule parser detects supported intents.
+2. The backend executes safe, parameterized ORM queries.
+3. If the query does not match a rule and `GROQ_API_KEY` is configured, Groq classifies the intent from a closed list.
+4. The LLM never executes SQL and never receives permission to create arbitrary database queries.
+
+Supported examples:
+
+```text
+How many available seats are on Floor 3?
+Who sits at seat F2-C-012?
+What is ETH1001's current seat?
+How many employees are in Engineering?
+How many pending new joiners are there?
+```
+
+## Deployment
 
 ### Backend on Render
 
-This repo includes `render.yaml`, so the easiest path is a Render Blueprint:
+Use the same GitHub repository and deploy only the backend folder.
 
-1. Push the repo to GitHub.
-2. In Render, create a **Blueprint** from the GitHub repo and select the root `render.yaml`.
-3. Render will create:
-   - `ethara-backend` web service from `backend/Dockerfile`
-   - `ethara-postgres` PostgreSQL database
-4. Set these Render environment variables on `ethara-backend`:
-   - `FRONTEND_ORIGINS` = your deployed Vercel URL, for example `https://your-project.vercel.app`
-   - `GROQ_API_KEY` = optional; leave blank if you only want the built-in rule parser
-5. After the first backend deploy succeeds, run this once in a Render shell/job to seed the production database:
+Render settings:
 
-```bash
-python -m app.seed
+```text
+Runtime: Docker
+Branch: main
+Root Directory: backend
+Dockerfile Path: ./Dockerfile
 ```
 
-The seed script recreates all tables, so do not run it again after real data is added.
+Required Render environment variables:
 
-Backend health check: `https://your-render-service.onrender.com/health`
-Swagger docs: `https://your-render-service.onrender.com/docs`
+```env
+DATABASE_URL=<Render PostgreSQL Internal Database URL>
+FRONTEND_ORIGINS=https://ethara-seat-allocation-project-mapp-xi.vercel.app
+ENVIRONMENT=production
+GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_API_KEY=<optional>
+```
+
+Backend URL:
+
+```text
+https://ethara-seat-allocation-project-mapping-w0km.onrender.com
+```
+
+### Database Seeding on Render Free Plan
+
+Render Shell is not available on free services. To seed from your local machine, copy the Render PostgreSQL **External Database URL** and run:
+
+```powershell
+cd C:\Users\pc\Downloads\ethara-seat-allocation\ethara\backend
+$env:DATABASE_URL="PASTE_EXTERNAL_DATABASE_URL_HERE"
+.\venv\Scripts\python.exe -m app.seed
+```
+
+Important: run the seed command only once for production/demo data. It drops and recreates all tables.
 
 ### Frontend on Vercel
 
-Deploy the `frontend/` folder as the Vercel project root. The included `frontend/vercel.json` keeps the install/build commands explicit.
+Vercel settings:
 
-Set this Vercel environment variable:
+```text
+Framework: Next.js
+Root Directory: frontend
+Install Command: npm ci
+Build Command: npm run build
+```
 
-| Variable | Value |
-|---|---|
-| `API_URL` | Your Render backend URL, for example `https://your-render-service.onrender.com` |
+Vercel environment variable:
 
-Leave `NEXT_PUBLIC_API_URL` unset unless you intentionally want browser-direct API calls. With only `API_URL` set, the Next.js `/api/*` rewrite proxies requests through Vercel to Render, which avoids browser CORS issues.
-## Debugging Notes
+```env
+API_URL=https://ethara-seat-allocation-project-mapping-w0km.onrender.com
+```
 
-Issues found and fixed while validating this build against a running instance (see `AI_PROMPTS.md` for the full trail):
-- **Case-sensitive lookups in the AI assistant** — both the "seat code" and "employee code" intents did exact-match (`==`) comparisons against values the regex parser had uppercased/lowercased, so `"ETH1001"` typed by a user didn't reliably match the stored `"ETH1001"`. Fixed by switching both to case-insensitive (`ilike`) lookups.
-- **Missing rule-based trigger for department headcount** — the intent existed in the executor but had no regex path to reach it, so it silently fell through to "unknown" without an Anthropic API key. Added the missing pattern.
-- **Stray directory from a broken brace-expansion** during scaffolding (a literal folder named `{employees/[id],projects,...}`) — removed; had no effect on the app, just repo hygiene.
-- Full backend test pass: all CRUD + business-rule endpoints (double-booking, >100% allocation, duplicate email, offboarding cascade, double-release) hit live against a running server — see `AI_PROMPTS.md` for the exact commands and results.
-- **Windows + Python 3.14 wheel gaps**: two pinned dependencies (`psycopg2-binary==2.9.9` and `pydantic==2.9.2`, which pulls in `pydantic-core==2.23.4`) predate Python 3.14 and have no prebuilt Windows wheels for it, so `pip` fell back to compiling from source — `psycopg2` needs PostgreSQL's `pg_config`, and `pydantic-core` needs a Rust toolchain + MSVC linker, neither of which are typically present on a fresh machine. Fixed by bumping `psycopg2-binary` to `2.9.12` and `pydantic`/`pydantic-settings` to version ranges (`>=2.12`, where Python 3.14 wheel support was added) that resolve to versions with prebuilt wheels. Re-verified the full CRUD + business-rule + AI-assistant test pass after the bump to confirm nothing broke.
-- Frontend: `tsc --noEmit` clean, and a full `next build` completed with zero errors (temporarily swapped the Google Fonts import for the build test only, since this sandbox has no internet access to fonts.googleapis.com — not an issue on a real deploy host).
+Frontend URL:
 
-## Known Limitations / Next Steps
+```text
+https://ethara-seat-allocation-project-mapp-xi.vercel.app/
+```
 
-- No authentication/authorization layer — every endpoint is open. A real deployment needs role-based access (Employee/HR/Admin/Project team, per the brief) before going anywhere near real data.
-- No Alembic migration history is included — schema currently comes from `Base.metadata.create_all()`. Fine for this assessment; a real system should use versioned migrations.
-- Seat map is a list/grid view, not a literal floor-plan visualization.
-- Screenshots aren't included in this submission since the app hasn't been deployed to a live URL yet — see `AI_PROMPTS.md` for why they couldn't be generated in the build environment either. Run `npm run dev` + `uvicorn ... --reload` locally (or deploy) and capture them for the final submission.
+## Troubleshooting
+
+### Backend connects to localhost on Render
+
+Problem:
+
+```text
+connection to server at "localhost", port 5432 failed
+```
+
+Cause: `DATABASE_URL` is still using the local development value.
+
+Fix: Replace it with the Render PostgreSQL **Internal Database URL** in the backend web service environment variables.
+
+### Render Docker path error
+
+Problem:
+
+```text
+lstat /opt/render/project/src/backend/backend: no such file or directory
+```
+
+Cause: `Root Directory` was set to `backend` and `Dockerfile Path` was set to `backend/Dockerfile`, creating a doubled path.
+
+Fix:
+
+```text
+Root Directory: backend
+Dockerfile Path: ./Dockerfile
+```
+
+### CORS errors from Vercel frontend
+
+Cause: Render backend does not allow the deployed Vercel origin.
+
+Fix:
+
+```env
+FRONTEND_ORIGINS=https://ethara-seat-allocation-project-mapp-xi.vercel.app
+```
+
+Then redeploy the backend.
+
+### Empty dashboard after deployment
+
+Cause: Database has not been seeded.
+
+Fix: Run `python -m app.seed` once against the Render PostgreSQL database.
+
+## Known Limitations
+
+- No authentication or role-based authorization yet.
+- No Alembic migration history is included.
+- Free Render PostgreSQL expires after the free trial window unless upgraded.
+- Render free web services may sleep after inactivity.
+- Seat map is a structured list/grid rather than a true floor-plan drawing.
+
+## Future Improvements
+
+- Role-based access for Admin, HR, Manager, and Facilities teams.
+- Alembic migrations for production schema changes.
+- Visual floor-plan editor for seats.
+- CSV import/export for employees and seats.
+- Audit dashboard for allocation changes.
+- Email notifications for new joiner allocation.
+- Advanced assistant intents and reporting queries.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
+
+## Author
+
+Built by **Pinki Dagar** for the Ethara technical assessment.
