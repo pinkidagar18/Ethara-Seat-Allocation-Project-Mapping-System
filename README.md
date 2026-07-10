@@ -21,6 +21,7 @@ Built with **Next.js**, **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **Tailwind 
 
 - [Overview](#overview)
 - [Features](#features)
+- [Architecture](#architecture)
 - [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
@@ -104,6 +105,9 @@ The system includes a seeded production-style dataset with approximately:
 - Uses a rule-based intent parser first.
 - Optional Groq fallback for supported intent classification.
 
+## Architecture
+
+![Ethara System Architecture](./Images/Architecture.svg)
 ## Screenshots
 
 ### Dashboard
@@ -176,6 +180,7 @@ ethara/
 |   |-- vercel.json
 |   `-- .env.local.example
 |-- Images/
+|   |-- Architecture.svg
 |   |-- Dashboard.png
 |   |-- Employees.png
 |   |-- Projects.png

@@ -1,0 +1,107 @@
+<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Ethara Seat Allocation System Architecture</title>
+  <desc id="desc">Architecture diagram showing users accessing the Vercel hosted Next.js frontend, which proxies API requests to the Render hosted FastAPI backend connected to Render PostgreSQL, with optional Groq AI intent classification and GitHub deployment flow.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1400" y2="860" gradientUnits="userSpaceOnUse"><stop stop-color="#07111F"/><stop offset="0.55" stop-color="#0D1728"/><stop offset="1" stop-color="#101827"/></linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1BA6FF"/><stop offset="0.52" stop-color="#6B7CFF"/><stop offset="1" stop-color="#22C55E"/></linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#132235"/><stop offset="1" stop-color="#0D1828"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000000" flood-opacity="0.35"/></filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2 2L10 6L2 10" stroke="#8FB4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <style>
+      .title { font: 800 36px Arial, sans-serif; fill: #F8FAFC; letter-spacing: .2px; }
+      .subtitle { font: 500 16px Arial, sans-serif; fill: #9FB2CC; }
+      .section { font: 800 18px Arial, sans-serif; fill: #E6EDF7; }
+      .label { font: 700 16px Arial, sans-serif; fill: #F8FAFC; }
+      .small { font: 500 13px Arial, sans-serif; fill: #B9C6D8; }
+      .tiny { font: 600 12px Arial, sans-serif; fill: #8FA3BC; }
+      .chip { font: 700 12px Arial, sans-serif; fill: #DCEAFF; }
+      .box { fill: url(#panel); stroke: #263A54; stroke-width: 1.4; rx: 18; filter: url(#shadow); }
+      .box2 { fill: #0E1A2B; stroke: #2B4161; stroke-width: 1.2; rx: 14; }
+      .line { stroke: #8FB4FF; stroke-width: 2.2; marker-end: url(#arrow); }
+      .mutedLine { stroke: #536A88; stroke-width: 1.8; stroke-dasharray: 7 8; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1400" height="860" fill="url(#bg)"/>
+  <circle cx="1120" cy="120" r="210" fill="#1BA6FF" opacity="0.08"/>
+  <circle cx="250" cy="740" r="220" fill="#22C55E" opacity="0.06"/>
+  <text x="70" y="72" class="title">Ethara Seat Allocation &amp; Project Mapping System</text>
+  <text x="72" y="105" class="subtitle">Production architecture for seat allocation, project mapping, analytics, search, and AI-assisted operations</text>
+
+  <rect x="70" y="145" width="250" height="160" class="box"/>
+  <path d="M164 201C164 184 178 170 195 170C212 170 226 184 226 201C226 218 212 232 195 232C178 232 164 218 164 201Z" fill="#1BA6FF" opacity="0.22"/>
+  <path d="M195 174C180 174 168 186 168 201C168 216 180 228 195 228C210 228 222 216 222 201C222 186 210 174 195 174ZM195 184C201 184 206 189 206 195C206 201 201 206 195 206C189 206 184 201 184 195C184 189 189 184 195 184ZM177 220C181 212 188 208 195 208C202 208 209 212 213 220C208 225 202 228 195 228C188 228 182 225 177 220Z" fill="#DCEAFF"/>
+  <text x="104" y="258" class="label">Users / Admin Teams</text>
+  <text x="103" y="280" class="small">HR, Facilities, PMO, Operations</text>
+
+  <rect x="410" y="135" width="310" height="190" class="box"/>
+  <rect x="435" y="160" width="98" height="28" rx="14" fill="#111827" stroke="#334155"/>
+  <text x="456" y="179" class="chip">Vercel</text>
+  <text x="435" y="220" class="section">Next.js Frontend</text>
+  <text x="435" y="247" class="small">App Router + TypeScript + Tailwind CSS</text>
+  <text x="435" y="270" class="small">Dashboard, Employees, Projects, Seats</text>
+  <text x="435" y="293" class="small">New Joiners, Search, AI Assistant UI</text>
+
+  <rect x="820" y="135" width="310" height="190" class="box"/>
+  <rect x="845" y="160" width="92" height="28" rx="14" fill="#111827" stroke="#334155"/>
+  <text x="868" y="179" class="chip">Render</text>
+  <text x="845" y="220" class="section">FastAPI Backend</text>
+  <text x="845" y="247" class="small">Python 3.12 + Uvicorn + Docker</text>
+  <text x="845" y="270" class="small">REST API routers and business rules</text>
+  <text x="845" y="293" class="small">CORS allowlist for Vercel frontend</text>
+
+  <rect x="1180" y="160" width="150" height="138" class="box2"/>
+  <text x="1212" y="204" class="section">Health</text>
+  <text x="1212" y="230" class="small">/health</text>
+  <text x="1212" y="253" class="small">/docs</text>
+
+  <rect x="390" y="405" width="760" height="220" class="box"/>
+  <text x="425" y="446" class="section">Backend Domain Modules</text>
+  <rect x="425" y="472" width="142" height="54" rx="12" fill="#10263E" stroke="#245D89"/><text x="454" y="505" class="small">Employees</text>
+  <rect x="585" y="472" width="142" height="54" rx="12" fill="#10263E" stroke="#245D89"/><text x="625" y="505" class="small">Projects</text>
+  <rect x="745" y="472" width="142" height="54" rx="12" fill="#10263E" stroke="#245D89"/><text x="793" y="505" class="small">Seats</text>
+  <rect x="905" y="472" width="190" height="54" rx="12" fill="#10263E" stroke="#245D89"/><text x="945" y="505" class="small">New Joiners</text>
+  <rect x="425" y="548" width="142" height="54" rx="12" fill="#132A29" stroke="#2A7D63"/><text x="462" y="581" class="small">Search</text>
+  <rect x="585" y="548" width="142" height="54" rx="12" fill="#132A29" stroke="#2A7D63"/><text x="628" y="581" class="small">Analytics</text>
+  <rect x="745" y="548" width="142" height="54" rx="12" fill="#132A29" stroke="#2A7D63"/><text x="790" y="581" class="small">Rules</text>
+  <rect x="905" y="548" width="190" height="54" rx="12" fill="#132A29" stroke="#2A7D63"/><text x="950" y="581" class="small">AI Assistant</text>
+
+  <rect x="820" y="690" width="310" height="120" class="box"/>
+  <text x="855" y="734" class="section">Render PostgreSQL</text>
+  <text x="855" y="762" class="small">Employees, departments, projects</text>
+  <text x="855" y="785" class="small">Seats, allocations, joiner requests</text>
+
+  <rect x="410" y="690" width="250" height="120" class="box"/>
+  <text x="445" y="734" class="section">Seed Script</text>
+  <text x="445" y="762" class="small">python -m app.seed</text>
+  <text x="445" y="785" class="small">Creates demo data for 5,000 employees</text>
+
+  <rect x="1180" y="430" width="150" height="135" class="box2"/>
+  <text x="1214" y="474" class="section">Groq</text>
+  <text x="1206" y="502" class="small">Optional LLM</text>
+  <text x="1206" y="525" class="small">intent fallback</text>
+
+  <rect x="70" y="455" width="250" height="130" class="box2"/>
+  <text x="105" y="500" class="section">GitHub Monorepo</text>
+  <text x="105" y="528" class="small">/frontend -> Vercel</text>
+  <text x="105" y="551" class="small">/backend -> Render</text>
+
+  <path d="M320 225H405" class="line"/><text x="334" y="207" class="tiny">Browser HTTPS</text>
+  <path d="M720 225H815" class="line"/><text x="735" y="207" class="tiny">/api proxy</text>
+  <path d="M1130 225H1175" class="line"/>
+  <path d="M975 325V398" class="line"/><text x="990" y="365" class="tiny">Routers</text>
+  <path d="M975 625V685" class="line"/><text x="990" y="662" class="tiny">SQLAlchemy ORM</text>
+  <path d="M660 750H815" class="line"/><text x="694" y="731" class="tiny">Seed demo data</text>
+  <path d="M1095 575H1175" class="mutedLine"/><text x="1110" y="556" class="tiny">Optional intent classification</text>
+  <path d="M320 500H385" class="mutedLine"/>
+  <path d="M195 455V320H565V330" class="mutedLine"/><text x="225" y="346" class="tiny">Git push deploys frontend</text>
+  <path d="M255 585V650H975V685" class="mutedLine"/><text x="300" y="672" class="tiny">Git push deploys backend service</text>
+
+  <rect x="70" y="640" width="250" height="170" rx="18" fill="#0C1625" stroke="#243B59" stroke-width="1.2"/>
+  <text x="105" y="684" class="section">Production URLs</text>
+  <text x="105" y="716" class="small">Frontend: Vercel</text>
+  <text x="105" y="741" class="tiny">ethara-seat-allocation-project-mapp-xi</text>
+  <text x="105" y="771" class="small">Backend: Render</text>
+  <text x="105" y="796" class="tiny">ethara-seat-allocation-project-mapping-w0km</text>
+  <rect x="70" y="825" width="1260" height="1" fill="#243B59"/>
+  <text x="70" y="845" class="tiny">Key flow: User -> Vercel Next.js UI -> Render FastAPI API -> Render PostgreSQL. AI assistant uses safe backend intents, with optional Groq fallback.</text>
+</svg>
