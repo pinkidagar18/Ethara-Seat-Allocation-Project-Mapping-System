@@ -171,17 +171,40 @@ The assistant does **not** let an LLM generate and execute raw SQL — on a syst
 
 ## Deployment Notes
 
-**Backend (Railway/Render):**
-1. Provision a Postgres instance; copy its connection string into `DATABASE_URL`.
-2. Deploy `backend/` (Dockerfile included) or point a Python buildpack at it with start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
-3. Run `python -m app.seed` once against the deployed database (via a one-off job/shell) to populate it.
-4. Set `FRONTEND_ORIGINS` to your deployed frontend URL once you have it, so CORS doesn't block the browser.
+### Backend on Render
 
-**Frontend (Vercel/Netlify):**
-1. Point it at `frontend/` as the project root.
-2. For local dev, leave `NEXT_PUBLIC_API_URL` unset so the frontend uses the same-origin `/api/*` proxy. For deployment, set `NEXT_PUBLIC_API_URL` only if the browser should call a public backend directly.
-3. Default build command (`npm run build`) works as-is.
+This repo includes `render.yaml`, so the easiest path is a Render Blueprint:
 
+1. Push the repo to GitHub.
+2. In Render, create a **Blueprint** from the GitHub repo and select the root `render.yaml`.
+3. Render will create:
+   - `ethara-backend` web service from `backend/Dockerfile`
+   - `ethara-postgres` PostgreSQL database
+4. Set these Render environment variables on `ethara-backend`:
+   - `FRONTEND_ORIGINS` = your deployed Vercel URL, for example `https://your-project.vercel.app`
+   - `GROQ_API_KEY` = optional; leave blank if you only want the built-in rule parser
+5. After the first backend deploy succeeds, run this once in a Render shell/job to seed the production database:
+
+```bash
+python -m app.seed
+```
+
+The seed script recreates all tables, so do not run it again after real data is added.
+
+Backend health check: `https://your-render-service.onrender.com/health`
+Swagger docs: `https://your-render-service.onrender.com/docs`
+
+### Frontend on Vercel
+
+Deploy the `frontend/` folder as the Vercel project root. The included `frontend/vercel.json` keeps the install/build commands explicit.
+
+Set this Vercel environment variable:
+
+| Variable | Value |
+|---|---|
+| `API_URL` | Your Render backend URL, for example `https://your-render-service.onrender.com` |
+
+Leave `NEXT_PUBLIC_API_URL` unset unless you intentionally want browser-direct API calls. With only `API_URL` set, the Next.js `/api/*` rewrite proxies requests through Vercel to Render, which avoids browser CORS issues.
 ## Debugging Notes
 
 Issues found and fixed while validating this build against a running instance (see `AI_PROMPTS.md` for the full trail):
