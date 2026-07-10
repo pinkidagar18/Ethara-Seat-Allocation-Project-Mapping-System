@@ -15,7 +15,7 @@ Built with **Next.js**, **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **Tailwind 
 
 ## Demo Video
 
-[Watch the demo video](./Images/Demo_Vedio.mp4)
+[Watch Demo Video on Google Drive](https://drive.google.com/file/d/1nszMJvsMoWRSn1aUJIJ-DBVrSDw1f2zX/view?usp=sharing)
 
 ## Table of Contents
 
@@ -182,7 +182,6 @@ ethara/
 |   |-- Seat_Map.png
 |   |-- New_Joinee.png
 |   |-- Ask_Ethara.png
-|   `-- Demo_Vedio.mp4
 |-- database_schema.sql
 |-- docker-compose.yml
 |-- render.yaml

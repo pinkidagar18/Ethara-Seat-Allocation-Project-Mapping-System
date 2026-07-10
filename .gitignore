@@ -24,3 +24,6 @@ frontend/.env.local
 # Local dev logs / caches
 *.log
 frontend/tsconfig.tsbuildinfo
+
+# Large local demo video is linked from Google Drive in README
+Images/Demo_Vedio.mp4
