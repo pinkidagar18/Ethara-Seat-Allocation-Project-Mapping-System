@@ -69,6 +69,14 @@ ethara/
 ### Prerequisites
 Python 3.11+, Node.js 18+, and PostgreSQL. The repository includes a Docker Compose service for local PostgreSQL.
 
+### Quick Start (Windows)
+
+```powershell
+.\start-dev.ps1
+```
+
+This starts Docker/PostgreSQL, the backend on `http://127.0.0.1:8020`, and the frontend on `http://localhost:3000`.
+
 ### Backend
 
 ```bash
@@ -87,17 +95,17 @@ python -m app.seed
 # Smaller/faster dataset for quick iteration:
 # SEED_EMPLOYEE_COUNT=300 python -m app.seed
 
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8020
 ```
 
-API is now live at `http://localhost:8000`, Swagger docs at `http://localhost:8000/docs`.
+API is now live at `http://127.0.0.1:8020`, Swagger docs at `http://127.0.0.1:8020/docs`.
 
 ### Frontend
 
 ```bash
 cd frontend
 npm install
-cp .env.local.example .env.local   # API_URL=http://127.0.0.1:8000
+cp .env.local.example .env.local   # API_URL=http://127.0.0.1:8020
 npm run dev
 ```
 
@@ -115,7 +123,7 @@ App is now live at `http://localhost:3000`.
 **Frontend (`frontend/.env.local`)**
 | Variable | Required | Description |
 |---|---|---|
-| `API_URL` | Yes for local dev | Backend API URL used by the Next.js `/api/*` proxy. Defaults to `http://127.0.0.1:8000` in `.env.local.example`. |
+| `API_URL` | Yes for local dev | Backend API URL used by the Next.js `/api/*` proxy. Defaults to `http://127.0.0.1:8020` in `.env.local.example`. |
 | `NEXT_PUBLIC_API_URL` | No | Optional public backend URL for deployments that should call the API directly from the browser. Leave unset for local dev. |
 
 ## API Documentation
